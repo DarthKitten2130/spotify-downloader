@@ -180,7 +180,7 @@ def entry_point():
 
     end_time = time.perf_counter()
     logger.debug("Took %d seconds", end_time - start_time)
-
+    logger.handlers[0].flush()
     if spotify_settings["use_cache_file"]:
         save_spotify_cache(spotify_client.cache)
 

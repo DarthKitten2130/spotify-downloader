@@ -39,6 +39,7 @@ WARN = WARNING
 INFO = 20
 DEBUG = 10
 MATCH = 5
+MISSING = 4
 NOTSET = 0
 
 LEVEL_TO_NAME = {
@@ -199,11 +200,24 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
         rich_tracebacks=True,
     )
 
+    # create a rich handler for missing songs
+    missing_songs_handler = SpotdlHandler(
+        show_time=log_level == "DEBUG",
+        log_time_format="[%X]",
+        omit_repeated_times=False,
+        console=console,
+        level=log_level,
+        markup=True,
+        show_path=log_level == "DEBUG",
+        show_level=log_level == "DEBUG",
+        rich_tracebacks=True,
+    )
+
     # create a memory handler
     memory_handler = MemoryHandler(
         capacity=1000,
         flushLevel=CRITICAL + 1,
-        target=None,
+        target=missing_songs_handler,
     )
 
     msg_format = "%(message)s"
@@ -213,7 +227,7 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
     else:
         msg_format = log_format
 
-    # Add rich handler to spotdl logger
+    # Add rich handler and memory handler to spotdl logger
     rich_handler.setFormatter(SpotdlFormatter(msg_format))
     memory_handler.setFormatter(SpotdlFormatter(msg_format))
 
@@ -224,6 +238,7 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
     spotdl_logger.setLevel(log_level)
     spotdl_logger.addHandler(rich_handler)
     spotdl_logger.addHandler(memory_handler)
+    memory_handler.setLevel(MISSING)
 
     # Install rich traceback handler
     install(show_locals=False, extra_lines=1, console=console)

@@ -391,6 +391,7 @@ class Downloader:
                 return url
 
             logger.debug("%s failed to find %s", audio_provider.name, song.display_name)
+            logger.log(4,"%s failed to find %s", audio_provider.name, song.display_name)
 
         raise LookupError(f"No results found for song: {song.display_name}")
 
@@ -419,6 +420,10 @@ class Downloader:
                 lyrics_provider.name,
                 song.display_name,
             )
+            logger.log(4,
+                "%s failed to find lyrics for %s",
+                lyrics_provider.name,
+                song.display_name,)
 
         return None
 
@@ -588,11 +593,18 @@ class Downloader:
                         ", ".join(
                             [lprovider.name for lprovider in self.lyrics_providers]
                         ),
+                    logger.log(4,
+                        "No lyrics found for %s, lyrics providers: %s",
+                        song.display_name,
+                        ", ".join(
+                            [lprovider.name for lprovider in self.lyrics_providers])
+                    )
                     )
                 else:
                     song.lyrics = lyrics
             except Exception as exc:
                 logger.debug("Could not search for lyrics: %s", exc)
+                logger.log(4,"Could not search for lyrics: %s", exc)
 
             # If the file already exists and we want to overwrite the metadata,
             # we can skip the download
@@ -620,7 +632,10 @@ class Downloader:
                                 old_song_path,
                                 exc,
                             )
-
+                        logger.log(4,
+                                "Could not remove duplicate file: %s, error: %s",
+                                old_song_path,
+                                exc,)
                     # Move the old file to the new location
                     if (
                         most_recent_duplicate
@@ -708,7 +723,11 @@ class Downloader:
                     song.display_name,
                     download_url,
                 )
-
+                logger.log(4,
+                           "No download info found for %s, url: %s",
+                           song.display_name,
+                           download_url,
+                           )
                 raise DownloaderError(
                     f"yt-dlp failed to get metadata for: {song.name} - {song.artist}"
                 )
@@ -769,6 +788,7 @@ class Downloader:
                     logger.debug(
                         "Could not remove temp file: %s, error: %s", temp_file, exc
                     )
+                    logger.log(4,"Could not remove temp file: %s, error: %s", temp_file, exc)
 
                     raise DownloaderError(
                         f"Could not remove temp file: {temp_file}, possible duplicate song"
