@@ -3,6 +3,7 @@ Module for logging
 """
 
 import logging
+from logging.handlers import MemoryHandler
 from typing import Optional
 
 from rich import get_console
@@ -198,6 +199,13 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
         rich_tracebacks=True,
     )
 
+    # create a memory handler
+    memory_handler = MemoryHandler(
+        capacity=1000,
+        flushLevel=CRITICAL + 1,
+        target=None,
+    )
+
     msg_format = "%(message)s"
     if log_format is None:
         if log_level == "DEBUG":
@@ -207,6 +215,7 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
 
     # Add rich handler to spotdl logger
     rich_handler.setFormatter(SpotdlFormatter(msg_format))
+    memory_handler.setFormatter(SpotdlFormatter(msg_format))
 
     # Create spotdl logger
     spotdl_logger = logging.getLogger("spotdl")
@@ -214,6 +223,7 @@ def init_logging(log_level: str, log_format: Optional[str] = None):
     # Setup spotdl logger
     spotdl_logger.setLevel(log_level)
     spotdl_logger.addHandler(rich_handler)
+    spotdl_logger.addHandler(memory_handler)
 
     # Install rich traceback handler
     install(show_locals=False, extra_lines=1, console=console)
